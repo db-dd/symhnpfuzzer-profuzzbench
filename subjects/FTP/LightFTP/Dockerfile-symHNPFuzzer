@@ -77,7 +77,7 @@ ENV AFL_PATH=${SYMHNPFUZZER}
 ENV PATH=${SYMHNPFUZZER}:${PATH}
 ENV SymExplorer="/home/ubuntu/SymExplorer"
 
-COPY --chown=ubuntu:ubuntu run-symhnpfuzzer.sh ${WORKDIR}/run-symhnpfuzzer
+COPY --chown=ubuntu:ubuntu run-symHNPFuzzer.sh ${WORKDIR}/run-symHNPFuzzer
 
 # copy .bashrc and remove "If not running interactively, don't do anything" part to let "docker run" execute
 RUN cat ~/.bashrc | head -n 4 > ~/.bashrc_docker && cat ~/.bashrc | tail -n +11 >> ~/.bashrc_docker
