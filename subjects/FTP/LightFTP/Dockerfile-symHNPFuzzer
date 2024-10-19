@@ -40,7 +40,7 @@ ENV SYMHNPFUZZER="/home/ubuntu/symHNPFuzzer"
 
 COPY --chown=ubuntu:ubuntu materials/Triton-SymProFuzz /home/ubuntu/Triton-SymProFuzz
 COPY --chown=ubuntu:ubuntu materials/SymExplorer /home/ubuntu/SymExplorer
-COPY --chown=ubuntu:ubuntu materials/SymHNPFuzzer /home/ubuntu/SymHNPFuzzer
+COPY --chown=ubuntu:ubuntu materials/symHNPFuzzer /home/ubuntu/symHNPFuzzer
 
 # upload pre-built cmake (>=3.20) to docker to make Triton
 COPY --chown=ubuntu:ubuntu materials/cmake-3.30.0-linux-x86_64.tar.gz /home/ubuntu/cmake-3.30.0-linux-x86_64.tar.gz
