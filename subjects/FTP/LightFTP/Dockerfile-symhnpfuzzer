@@ -72,12 +72,12 @@ RUN cd $SYMHNPFUZZER && \
     cd llvm_mode && \
     make $MAKE_OPT
 
-# Set up environment variables for SymAFLNet
+# Set up environment variables for SymHNPFuzzer
 ENV AFL_PATH=${SYMHNPFUZZER}
-ENV PATH=${SYMAFLNET}:${PATH}
+ENV PATH=${SYMHNPFUZZER}:${PATH}
 ENV SymExplorer="/home/ubuntu/SymExplorer"
 
-COPY --chown=ubuntu:ubuntu run-symaflnet.sh ${WORKDIR}/run-symaflnet
+COPY --chown=ubuntu:ubuntu run-symhnpfuzzer.sh ${WORKDIR}/run-symhnpfuzzer
 
 # copy .bashrc and remove "If not running interactively, don't do anything" part to let "docker run" execute
 RUN cat ~/.bashrc | head -n 4 > ~/.bashrc_docker && cat ~/.bashrc | tail -n +11 >> ~/.bashrc_docker

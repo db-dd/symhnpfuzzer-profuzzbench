@@ -9,16 +9,34 @@ OUTDIR=$5     #name of the output folder created inside the docker container
 OPTIONS=$6    #all configured options for fuzzing
 TIMEOUT=$7    #time for fuzzing
 SKIPCOUNT=$8  #used for calculating coverage over time. e.g., SKIPCOUNT=5 means we run gcovr after every 5 test cases
-DELETE=$9
+SYMPF_SETTINGS=$9   # path to SymProFuzz setting file
+SYMEXP_SETTINGS=${10}  # path to SymExplorer setting file
+DELETE=${11}
 
 WORKDIR="/home/ubuntu/experiments"
 
 #keep all container ids
 cids=()
 
+SYMAFLNET_DOCKER_RUN_OPTS=""
+if [ "$DOCIMAGE" == "proftpd-symaflnet" ] \
+    || [ "$DOCIMAGE" == "exim-symaflnet" ]; then
+  SYMAFLNET_DOCKER_RUN_OPTS="--cap-add=SYS_PTRACE --security-opt seccomp=unconfined"
+fi
+
+strstr() {
+  [ "${1#*$2*}" = "$1" ] && return 1
+  return 0
+}
+
 #create one container for each run
 for i in $(seq 1 $RUNS); do
-  id=$(docker run --cpus=1 -d -it $DOCIMAGE /bin/bash -c "cd ${WORKDIR} && run ${FUZZER} ${OUTDIR} '${OPTIONS}' ${TIMEOUT} ${SKIPCOUNT}")
+  if $(strstr $FUZZER "sym"); then
+    id=$(docker run --cpus=1 -d -it $SYMAFLNET_DOCKER_RUN_OPTS $DOCIMAGE /bin/bash -c \
+      "source ~/.bashrc_docker && cd ${WORKDIR} && run ${FUZZER} ${OUTDIR} '${OPTIONS}' ${TIMEOUT} ${SKIPCOUNT} ${SYMPF_SETTINGS} ${SYMEXP_SETTINGS} > result.txt 2>&1")
+  else
+    id=$(docker run --cpus=1 -d -it $DOCIMAGE /bin/bash -c "cd ${WORKDIR} && run ${FUZZER} ${OUTDIR} '${OPTIONS}' ${TIMEOUT} ${SKIPCOUNT} > result.txt 2>&1")
+  fi
   cids+=(${id::12}) #store only the first 12 characters of a container ID
 done
 
@@ -43,6 +61,7 @@ fi
 index=6
 for id in ${cids[@]}; do
   printf "\n${FUZZER^^}: Collecting results from container ${id}"
+  mkdir -p ${SAVETO}
   docker cp ${id}:/home/ubuntu/experiments/${OUTDIR}.tar.gz ${SAVETO}/${OUTDIR}_${index}.tar.gz > /dev/null
   if [ ! -z $DELETE ]; then
     printf "\nDeleting ${id}"
