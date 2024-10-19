@@ -1,4 +1,4 @@
-FROM lightftp
+FROM lightftp-hnp
 
 USER root
 RUN apt-get -y update && \
@@ -36,7 +36,7 @@ ARG MAKE_OPT
 ARG TRITON_MAKE_OPT="-j3"
 ARG SYMEXPLORER_MAKE_OPT="-j3"
 # Set up SymHNPFuzzer
-ENV SYMHNPFUZZER="/home/ubuntu/SymHNPFuzzer"
+ENV SYMHNPFUZZER="/home/ubuntu/symHNPFuzzer"
 
 COPY --chown=ubuntu:ubuntu materials/Triton-SymProFuzz /home/ubuntu/Triton-SymProFuzz
 COPY --chown=ubuntu:ubuntu materials/SymExplorer /home/ubuntu/SymExplorer
