@@ -34,7 +34,7 @@ if $(strstr $FUZZER "afl") || $(strstr $FUZZER "HNPFuzzer"); then
     cd $WORKDIR/${TARGET_DIR}/Source/Release
     AFL_PRELOAD=/home/ubuntu/${FUZZER}/sock2shm.so timeout -k 0 --preserve-status $TIMEOUT /home/ubuntu/${FUZZER}/afl-fuzz -d -i ${INPUTS} -o $OUTDIR -N tcp://127.0.0.1/2200 $OPTIONS -c ${WORKDIR}/ftpclean -z /home/ubuntu/${FUZZER}/$SYMPF_SETTINGS -y $SymExplorer/$SYMEXP_SETTINGS ./fftp fftp.conf 2200
     mv $SymExplorer/SymExplorer_time.txt $OUTDIR
-  else if $(strstr $FUZZER "HNPFuzzer"); then
+  elif $(strstr $FUZZER "HNPFuzzer"); then
     AFL_PRELOAD=/home/ubuntu/${FUZZER}/sock2shm.so timeout -k 0 --preserve-status $TIMEOUT /home/ubuntu/${FUZZER}/afl-fuzz -d -i ${INPUTS} -o $OUTDIR -N tcp://127.0.0.1/2200 $OPTIONS -c ${WORKDIR}/ftpclean ./fftp fftp.conf 2200
   else
     timeout -k 0 --preserve-status $TIMEOUT /home/ubuntu/${FUZZER}/afl-fuzz -d -i ${INPUTS} -o $OUTDIR -N tcp://127.0.0.1/2200 $OPTIONS -c ${WORKDIR}/ftpclean ./fftp fftp.conf 2200
