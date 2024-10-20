@@ -20,7 +20,9 @@ cids=()
 
 SYMAFLNET_DOCKER_RUN_OPTS=""
 if [ "$DOCIMAGE" == "proftpd-symaflnet" ] \
-    || [ "$DOCIMAGE" == "exim-symaflnet" ]; then
+    || [ "$DOCIMAGE" == "exim-symaflnet" ] \
+    || [ "$DOCIMAGE" == "proftpd-symHNPFuzzer" ] \
+    || [ "$DOCIMAGE" == "exim-symHNPFuzzer" ]; then
   SYMAFLNET_DOCKER_RUN_OPTS="--cap-add=SYS_PTRACE --security-opt seccomp=unconfined"
 fi
 

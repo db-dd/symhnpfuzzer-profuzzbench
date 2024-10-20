@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 import pandas as pd
 
 
-def main(csv_file, fuzzer, put, runs, cut_off, step, out_file):
+def main(csv_file, put, runs, cut_off, step, out_file):
   #Read the results
   df = read_csv(csv_file)
 
@@ -17,7 +17,7 @@ def main(csv_file, fuzzer, put, runs, cut_off, step, out_file):
   mean_list = []
 
   for subject in [put]:
-    for fuzzer in [fuzzer]:
+    for fuzzer in ['HNPFuzzer', 'symHNPFuzzer']:
       for cov_type in ['b_abs', 'b_per', 'l_abs', 'l_per']:
         #get subject & fuzzer & cov_type-specific dataframe
         df1 = df[(df['subject'] == subject) & 
@@ -77,7 +77,7 @@ def main(csv_file, fuzzer, put, runs, cut_off, step, out_file):
       axes[1, 1].set_ylabel('Line coverage (%)')
 
   for i, ax in enumerate(fig.axes):
-    ax.legend(('AFLNet', 'AFLNwe'), loc='upper left')
+    ax.legend(('HNPFuzzer', 'symHNPFuzzer'), loc='upper left')
     ax.grid()
 
   #Save to file
@@ -87,11 +87,10 @@ def main(csv_file, fuzzer, put, runs, cut_off, step, out_file):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()    
     parser.add_argument('-i','--csv_file',type=str,required=True,help="Full path to results.csv")
-    parser.add_argument('-f','--fuzzer',type=str,required=True,help='Name of the fuzzer')
     parser.add_argument('-p','--put',type=str,required=True,help="Name of the subject program")
     parser.add_argument('-r','--runs',type=int,required=True,help="Number of runs in the experiment")
     parser.add_argument('-c','--cut_off',type=int,required=True,help="Cut-off time in minutes")
     parser.add_argument('-s','--step',type=int,required=True,help="Time step in minutes")
     parser.add_argument('-o','--out_file',type=str,required=True,help="Output file")
     args = parser.parse_args()
-    main(args.csv_file, args.fuzzer, args.put, args.runs, args.cut_off, args.step, args.out_file)
+    main(args.csv_file, args.put, args.runs, args.cut_off, args.step, args.out_file)
