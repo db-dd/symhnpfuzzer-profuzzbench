@@ -58,7 +58,7 @@ if [ ! -d ${SAVETO} ]; then
 	mkdir -p ${SAVETO}
 fi
 
-index=6
+index=1
 for id in ${cids[@]}; do
   printf "\n${FUZZER^^}: Collecting results from container ${id}"
   mkdir -p ${SAVETO}
