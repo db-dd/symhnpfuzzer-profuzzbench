@@ -30,7 +30,8 @@ RUN groupadd ubuntu && \
 
 RUN chmod 777 /tmp
 
-RUN pip3 install gcovr==4.2
+# RUN pip3 install gcovr==4.2
+RUN pip3 install gcovr==4.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # Use ubuntu as default username
 USER ubuntu
@@ -64,7 +65,8 @@ RUN mkdir $WORKDIR
 
 # Set up ProFTPD for fuzzing
 RUN cd ${WORKDIR} && \
-    git clone https://github.com/proftpd/proftpd.git && \
+    # git clone https://github.com/proftpd/proftpd.git && \
+    git clone https://gitee.com/skyworld123/proftpd.git && \
     cd proftpd && \
     git checkout 4017eff8 && \
     CC="afl-clang-fast" CXX="afl-clang-fast++" ./configure --enable-devel=nodaemon:nofork && \
@@ -72,7 +74,8 @@ RUN cd ${WORKDIR} && \
 
 # Set up ProFTPD for coverage analysis
 RUN cd ${WORKDIR} && \
-    git clone https://github.com/proftpd/proftpd.git proftpd-gcov && \
+    # git clone https://github.com/proftpd/proftpd.git proftpd-gcov && \
+    git clone https://gitee.com/skyworld123/proftpd.git proftpd-gcov && \
     cd proftpd-gcov && \
     git checkout 4017eff8 && \
     CFLAGS="-fprofile-arcs -ftest-coverage" CPPFLAGS="-fprofile-arcs -ftest-coverage" CXXFLAGS="-fprofile-arcs -ftest-coverage" LDFLAGS="-fprofile-arcs -ftest-coverage" ./configure --enable-devel=nodaemon:nofork && \
@@ -81,10 +84,15 @@ RUN cd ${WORKDIR} && \
 
 COPY --chown=ubuntu:ubuntu basic.conf ${WORKDIR}/
 COPY --chown=ubuntu:ubuntu in-ftp ${WORKDIR}/in-ftp
+COPY --chown=ubuntu:ubuntu in-ftp-replay ${WORKDIR}/in-ftp-replay
 COPY --chown=ubuntu:ubuntu ftp.dict ${WORKDIR}/ftp.dict
 COPY --chown=ubuntu:ubuntu run.sh ${WORKDIR}/run
 COPY --chown=ubuntu:ubuntu clean.sh ${WORKDIR}/clean
 COPY --chown=ubuntu:ubuntu cov_script.sh ${WORKDIR}/cov_script
+
+RUN chmod +x ${WORKDIR}/run && \
+    chmod +x ${WORKDIR}/clean && \
+    chmod +x ${WORKDIR}/cov_script
 
 RUN mkdir /home/ubuntu/ftpshare && \
     chown -R ubuntu:ubuntu /home/ubuntu/ftpshare

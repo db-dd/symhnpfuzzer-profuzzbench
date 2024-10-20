@@ -30,7 +30,8 @@ RUN groupadd ubuntu && \
 
 RUN chmod 777 /tmp
 
-RUN pip3 install gcovr==4.2
+# RUN pip3 install gcovr==4.2
+RUN pip3 install gcovr==4.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # Use ubuntu as default username
 USER ubuntu
@@ -64,7 +65,8 @@ env ASAN_OPTIONS='abort_on_error=1:symbolize=0:detect_leaks=0:detect_stack_use_a
 
 # Download and compile Live555 for fuzzing
 RUN cd $WORKDIR && \
-    git clone https://github.com/rgaufman/live555.git && \
+    # git clone https://github.com/rgaufman/live555.git && \
+    git clone https://gitee.com/skyworld123/live555.git && \
     cd live555 && \
     git checkout ceeb4f4 && \
     patch -p1 < $WORKDIR/fuzzing.patch && \
@@ -77,19 +79,26 @@ RUN cd ${WORKDIR}/live555/testProgs && \
 
 # Download and compile Live555 for coverage analysis
 RUN cd $WORKDIR && \
-    git clone https://github.com/rgaufman/live555.git live555-cov && \
-    cd live555-cov && \
+    # git clone https://github.com/rgaufman/live555.git live555-cov && \
+    # cd live555-cov && \
+    git clone https://gitee.com/skyworld123/live555.git live555-gcov && \
+    cd live555-gcov && \
     git checkout ceeb4f4 && \
     patch -p1 < $WORKDIR/gcov.patch && \
     ./genMakefiles linux && \
     make CFLAGS="-fprofile-arcs -ftest-coverage" CPPFLAGS="-fprofile-arcs -ftest-coverage" CXXFLAGS="-fprofile-arcs -ftest-coverage" LDFLAGS="-fprofile-arcs -ftest-coverage" clean all
 
 # Set up Live555 for coverage analysis
-RUN cd ${WORKDIR}/live555-cov/testProgs && \
+RUN cd ${WORKDIR}/live555-gcov/testProgs && \
     cp ${HNPFUZZER}/tutorials/live555/sample_media_sources/*.* ./
 
 COPY --chown=ubuntu:ubuntu kill-server.sh ${WORKDIR}/kill-server
 COPY --chown=ubuntu:ubuntu in-rtsp ${WORKDIR}/in-rtsp
+COPY --chown=ubuntu:ubuntu in-rtsp-replay ${WORKDIR}/in-rtsp-replay
 COPY --chown=ubuntu:ubuntu rtsp.dict ${WORKDIR}/rtsp.dict
 COPY --chown=ubuntu:ubuntu cov_script.sh ${WORKDIR}/cov_script
 COPY --chown=ubuntu:ubuntu run.sh ${WORKDIR}/run
+
+RUN chmod +x ${WORKDIR}/kill-server && \
+    chmod +x ${WORKDIR}/cov_script && \
+    chmod +x ${WORKDIR}/run

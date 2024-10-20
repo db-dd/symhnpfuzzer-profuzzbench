@@ -26,9 +26,9 @@ if $(strstr $FUZZER "afl") || $(strstr $FUZZER "HNPFuzzer"); then
   #Move to fuzzing folder
   cd $WORKDIR/${TARGET_DIR}
   if $(strstr $FUZZER "HNPFuzzer"); then
-    AFL_PRELOAD=/home/ubuntu/${FUZZER}/sock2shm.so timeout -k 0 --preserve-status $TIMEOUT /home/ubuntu/${FUZZER}/afl-fuzz -d -i ${INPUTS} -o $OUTDIR -x ${WORKDIR}/ftp.dict -N tcp://127.0.0.1/21 $OPTIONS -c ${WORKDIR}/clean ./bftpd -D -c ${WORKDIR}/basic.conf
+    AFL_PRELOAD=/home/ubuntu/${FUZZER}/sock2shm.so timeout -k 0 --preserve-status $TIMEOUT /home/ubuntu/${FUZZER}/afl-fuzz -d -i ${INPUTS} -o $OUTDIR -N tcp://127.0.0.1/21 $OPTIONS -c ${WORKDIR}/clean ./bftpd -D -c ${WORKDIR}/basic.conf
   else 
-    timeout -k 0 --preserve-status $TIMEOUT /home/ubuntu/${FUZZER}/afl-fuzz -d -i ${INPUTS} -o $OUTDIR -x ${WORKDIR}/ftp.dict -N tcp://127.0.0.1/21 $OPTIONS -c ${WORKDIR}/clean ./bftpd -D -c ${WORKDIR}/basic.conf
+    timeout -k 0 --preserve-status $TIMEOUT /home/ubuntu/${FUZZER}/afl-fuzz -d -i ${INPUTS} -o $OUTDIR -N tcp://127.0.0.1/21 $OPTIONS -c ${WORKDIR}/clean ./bftpd -D -c ${WORKDIR}/basic.conf
   fi
 
   STATUS=$?

@@ -1,0 +1,84 @@
+FROM tinydtls-hnp
+
+USER root
+RUN apt-get -y update && \
+    apt-get -y install libcapstone-dev \
+    libboost-all-dev \
+    libpython3.9-dev \
+    libz3-dev
+
+USER ubuntu
+WORKDIR /home/ubuntu
+
+# Set up conda environment
+# 1) Download and install miniconda
+# RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh && \
+#     chmod +x miniconda.sh
+COPY --chown=ubuntu:ubuntu materials/Miniconda3-latest-Linux-x86_64.sh miniconda.sh
+RUN chmod +x miniconda.sh
+ENV CONDA_DIR="/home/ubuntu/miniconda3"
+RUN /bin/bash ./miniconda.sh -b && \
+    rm ./miniconda.sh
+ENV PATH="$CONDA_DIR/bin:$PATH"
+RUN conda init bash && \
+    . ~/.bashrc
+# 2) (optional) set pip source
+RUN mkdir -p /home/ubuntu/.pip
+COPY --chown=ubuntu:ubuntu materials/pip.conf /home/ubuntu/.pip/pip.conf
+# 3) manage conda environments
+RUN pip install angr
+RUN conda create -y -n triton python=3.9
+RUN /bin/bash -c "source activate triton"
+ENV PATH="$CONDA_DIR/envs/triton/bin:$PATH"
+
+# Import environment variable to pass as parameter to make (e.g., to make parallel builds with -j)
+ARG MAKE_OPT
+ARG TRITON_MAKE_OPT="-j3"
+ARG SYMEXPLORER_MAKE_OPT="-j3"
+
+# Set up SymHNPFuzzer
+ENV SYMHNPFUZZER="/home/ubuntu/symHNPFuzzer"
+
+COPY --chown=ubuntu:ubuntu materials/Triton-SymProFuzz /home/ubuntu/Triton-SymProFuzz
+COPY --chown=ubuntu:ubuntu materials/SymExplorer /home/ubuntu/SymExplorer
+COPY --chown=ubuntu:ubuntu materials/symHNPFuzzer /home/ubuntu/symHNPFuzzer
+
+# upload pre-built cmake (>=3.20) to docker to make Triton
+COPY --chown=ubuntu:ubuntu materials/cmake-3.30.0-linux-x86_64.tar.gz /home/ubuntu/cmake-3.30.0-linux-x86_64.tar.gz
+RUN tar -zxf cmake-3.30.0-linux-x86_64.tar.gz && \
+    mv cmake-3.30.0-linux-x86_64/ /home/ubuntu/cmake
+ENV PATH="/home/ubuntu/cmake/bin:$PATH"
+
+RUN cd Triton-SymProFuzz && \
+    rm -rf build && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    make ${TRITON_MAKE_OPT}
+USER root
+RUN cd Triton-SymProFuzz/build && \
+    make install && \
+    ln -s /usr/local/lib/libtriton.so /usr/lib
+USER ubuntu
+
+RUN cd SymExplorer && \
+    rm -rf build && \
+    mkdir build && cd build && \
+    cmake -DCMAKE_BUILD_TYPE=Debug .. && \
+    make ${SYMEXPLORER_MAKE_OPT} && \
+    cp ./sym_explorer ..
+
+RUN cd $SYMHNPFUZZER && \
+    make clean all $MAKE_OPT && \
+    cd llvm_mode && \
+    make $MAKE_OPT
+
+# Set up environment variables for SymHNPFuzzer
+ENV AFL_PATH=${SYMHNPFUZZER}}
+ENV PATH=${SYMHNPFUZZER}}:${PATH}
+ENV SymExplorer="/home/ubuntu/SymExplorer"
+
+COPY --chown=ubuntu:ubuntu run-symHNPFuzzer.sh ${WORKDIR}/run-symHNPFuzzer
+
+# copy .bashrc and remove "If not running interactively, don't do anything" part to let "docker run" execute
+RUN cat ~/.bashrc | head -n 4 > ~/.bashrc_docker && cat ~/.bashrc | tail -n +11 >> ~/.bashrc_docker

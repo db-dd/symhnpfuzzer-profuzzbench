@@ -30,7 +30,8 @@ RUN groupadd ubuntu && \
 
 RUN chmod 777 /tmp
 
-RUN pip3 install gcovr==4.2
+# RUN pip3 install gcovr==4.2
+RUN pip3 install gcovr==4.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # Use ubuntu as default username
 USER ubuntu
@@ -76,7 +77,8 @@ env ASAN_OPTIONS='abort_on_error=1:symbolize=0:detect_leaks=0:detect_stack_use_a
 
 # Download, compile and install Exim for fuzzing
 RUN cd ${WORKDIR} && \
-    git clone https://github.com/Exim/exim && \
+    # git clone https://github.com/Exim/exim && \
+    git clone https://gitee.com/skyworld123/exim && \
     cd exim && \
     git checkout 38903fb && \
     patch -p1 < ${WORKDIR}/exim-rand.patch && \
@@ -87,7 +89,8 @@ RUN cd ${WORKDIR} && \
 
 # Download and compile Exim for coverage analysis
 RUN cd ${WORKDIR} && \
-    git clone https://github.com/Exim/exim exim-gcov && \
+    # git clone https://github.com/Exim/exim exim-gcov && \
+    git clone https://gitee.com/skyworld123/exim exim-gcov && \
     cd exim-gcov && \
     git checkout 38903fb && \
     patch -p1 < ${WORKDIR}/exim-rand.patch && \
@@ -104,7 +107,12 @@ RUN cd /usr/exim && \
 ENV PATH="/usr/exim/bin:${PATH}"
 
 COPY --chown=ubuntu:ubuntu in-smtp ${WORKDIR}/in-smtp
+COPY --chown=ubuntu:ubuntu in-smtp-replay ${WORKDIR}/in-smtp-replay
 COPY --chown=ubuntu:ubuntu smtp.dict ${WORKDIR}/smtp.dict
 COPY --chown=ubuntu:ubuntu cov_script.sh ${WORKDIR}/cov_script
 COPY --chown=ubuntu:ubuntu run.sh ${WORKDIR}/run
 COPY --chown=ubuntu:ubuntu clean.sh ${WORKDIR}/clean
+
+RUN chmod +x ${WORKDIR}/cov_script && \
+    chmod +x ${WORKDIR}/run && \
+    chmod +x ${WORKDIR}/clean

@@ -30,7 +30,8 @@ RUN groupadd ubuntu && \
 
 RUN chmod 777 /tmp
 
-RUN pip3 install gcovr==4.2
+# RUN pip3 install gcovr==4.2
+RUN pip3 install gcovr==4.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # Use ubuntu as default username
 USER ubuntu
@@ -62,9 +63,11 @@ COPY --chown=ubuntu:ubuntu gcov.patch ${WORKDIR}/gcov.patch
 # Set up environment variables for ASAN
 env ASAN_OPTIONS='abort_on_error=1:symbolize=0:detect_leaks=0:detect_stack_use_after_return=1:detect_container_overflow=0:poison_array_cookie=0:malloc_fill_byte=0:max_malloc_fill_size=16777216'
 
+COPY --chown=ubuntu:ubuntu materials/bftpd-5.7.tar.gz ${WORKDIR}/bftpd-5.7.tar.gz
+
 # Set up Bftpd for fuzzing
 RUN cd ${WORKDIR} && \
-    wget https://sourceforge.net/projects/bftpd/files/bftpd/bftpd-5.7/bftpd-5.7.tar.gz && \
+    # wget https://sourceforge.net/projects/bftpd/files/bftpd/bftpd-5.7/bftpd-5.7.tar.gz && \
     tar -zxvf bftpd-5.7.tar.gz && \
     cd bftpd && \
     patch -p1 < ${WORKDIR}/fuzzing.patch && \
@@ -86,6 +89,10 @@ COPY --chown=ubuntu:ubuntu ftp.dict ${WORKDIR}/ftp.dict
 COPY --chown=ubuntu:ubuntu run.sh ${WORKDIR}/run
 COPY --chown=ubuntu:ubuntu clean.sh ${WORKDIR}/clean
 COPY --chown=ubuntu:ubuntu cov_script.sh ${WORKDIR}/cov_script
+
+RUN chmod +x ${WORKDIR}/run && \
+    chmod +x ${WORKDIR}/clean && \
+    chmod +x ${WORKDIR}/cov_script
 
 RUN mkdir /home/ubuntu/ftpshare && \
     chown -R ubuntu:ubuntu /home/ubuntu/ftpshare

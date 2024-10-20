@@ -30,7 +30,8 @@ RUN groupadd ubuntu && \
 
 RUN chmod 777 /tmp
 
-RUN pip3 install gcovr==4.2
+# RUN pip3 install gcovr==4.2
+RUN pip3 install gcovr==4.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # Use ubuntu as default username
 USER ubuntu
@@ -66,7 +67,8 @@ env ASAN_OPTIONS='abort_on_error=1:symbolize=0:detect_leaks=0:detect_stack_use_a
 
 # Download and compile Dnsmasq for fuzzing
 RUN cd $WORKDIR && \
-    git clone git://thekelleys.org.uk/dnsmasq.git && \
+    # git clone git://thekelleys.org.uk/dnsmasq.git && \
+    git clone https://gitee.com/mirrors_thekelleys_org_uk/dnsmasq.git && \
     cd dnsmasq && \
     git checkout v2.73rc6 && \
     patch -p1 < ${WORKDIR}/dnsmasq.patch && \
@@ -74,7 +76,8 @@ RUN cd $WORKDIR && \
 
 # Download and compile Dnsmasq for coverage analysis
 RUN cd $WORKDIR && \
-    git clone git://thekelleys.org.uk/dnsmasq.git dnsmasq-gcov && \
+    # git clone git://thekelleys.org.uk/dnsmasq.git dnsmasq-gcov && \
+    git clone https://gitee.com/mirrors_thekelleys_org_uk/dnsmasq.git dnsmasq-gcov && \
     cd dnsmasq-gcov && \
     git checkout v2.73rc6 && \
     patch -p1 < ${WORKDIR}/dnsmasq.patch && \
@@ -82,10 +85,14 @@ RUN cd $WORKDIR && \
 
 
 COPY --chown=ubuntu:ubuntu in-dns ${WORKDIR}/in-dns
+COPY --chown=ubuntu:ubuntu in-dns-replay ${WORKDIR}/in-dns-replay
 COPY --chown=ubuntu:ubuntu dns.dict ${WORKDIR}/dns.dict
 COPY --chown=ubuntu:ubuntu cov_script.sh ${WORKDIR}/cov_script
 COPY --chown=ubuntu:ubuntu run.sh ${WORKDIR}/run
 COPY --chown=ubuntu:ubuntu dnsmasq.conf ${WORKDIR}/dnsmasq.conf
+
+RUN chmod +x ${WORKDIR}/cov_script && \
+    chmod +x ${WORKDIR}/run
 
 RUN cp ${WORKDIR}/dnsmasq.conf /etc/ && \
     echo address=/test.com/5.5.5.5 | sudo tee -a /etc/dnsmasq.conf

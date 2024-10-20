@@ -5,6 +5,8 @@ OUTDIR=$2     #name of the output folder
 OPTIONS=$3    #all configured options -- to make it flexible, we only fix some options (e.g., -i, -o, -N) in this script
 TIMEOUT=$4    #time for fuzzing
 SKIPCOUNT=$5  #used for calculating cov over time. e.g., SKIPCOUNT=5 means we run gcovr after every 5 test cases
+SYMPF_SETTINGS=$6   # path to SymProFuzz setting file
+SYMEXP_SETTINGS=$7  # path to SymExplorer setting file
 
 strstr() {
   [ "${1#*$2*}" = "$1" ] && return 1
@@ -25,10 +27,19 @@ if $(strstr $FUZZER "afl") || $(strstr $FUZZER "HNPFuzzer"); then
   #Step-1. Do Fuzzing
   #Move to fuzzing folder
   cd $WORKDIR/${TARGET_DIR}
-  if $(strstr $FUZZER "HNPFuzzer"); then
-    AFL_PRELOAD=/home/ubuntu/${FUZZER}/sock2shm.so timeout -k 0 --preserve-status $TIMEOUT /home/ubuntu/${FUZZER}/afl-fuzz -d -i ${INPUTS} -o $OUTDIR -x ${WORKDIR}/ftp.dict -N tcp://127.0.0.1/21 $OPTIONS -c ${WORKDIR}/clean ./proftpd -n -c ${WORKDIR}/basic.conf
+  if $(strstr $FUZZER "sym"); then
+    export LD_PRELOAD_BAK=$LD_PRELOAD
+    export LD_PRELOAD=
+    cd $SymExplorer
+    (time ./sym_explorer -s $SYMEXP_SETTINGS) > SymExplorer_time.txt 2>&1
+    export LD_PRELOAD=$LD_PRELOAD_BAK
+    cd $WORKDIR/${TARGET_DIR}
+    AFL_PRELOAD=/home/ubuntu/${FUZZER}/sock2shm.so timeout -k 0 --preserve-status $TIMEOUT /home/ubuntu/${FUZZER}/afl-fuzz -d -i ${INPUTS} -o $OUTDIR -N tcp://127.0.0.1/21 $OPTIONS -c ${WORKDIR}/clean -z /home/ubuntu/${FUZZER}/$SYMPF_SETTINGS -y $SymExplorer/$SYMEXP_SETTINGS ./proftpd -n -c ${WORKDIR}/basic.conf
+    mv $SymExplorer/SymExplorer_time.txt $OUTDIR
+  elif $(strstr $FUZZER "HNPFuzzer"); then
+    AFL_PRELOAD=/home/ubuntu/${FUZZER}/sock2shm.so timeout -k 0 --preserve-status $TIMEOUT /home/ubuntu/${FUZZER}/afl-fuzz -d -i ${INPUTS} -o $OUTDIR -N tcp://127.0.0.1/21 $OPTIONS -c ${WORKDIR}/clean ./proftpd -n -c ${WORKDIR}/basic.conf
   else
-    timeout -k 0 --preserve-status $TIMEOUT /home/ubuntu/${FUZZER}/afl-fuzz -d -i ${INPUTS} -o $OUTDIR -x ${WORKDIR}/ftp.dict -N tcp://127.0.0.1/21 $OPTIONS -c ${WORKDIR}/clean ./proftpd -n -c ${WORKDIR}/basic.conf -X
+    timeout -k 0 --preserve-status $TIMEOUT /home/ubuntu/${FUZZER}/afl-fuzz -d -i ${INPUTS} -o $OUTDIR -N tcp://127.0.0.1/21 $OPTIONS -c ${WORKDIR}/clean ./proftpd -n -c ${WORKDIR}/basic.conf -X
   fi 
   STATUS=$?
 

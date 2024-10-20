@@ -30,7 +30,8 @@ RUN groupadd ubuntu && \
 
 RUN chmod 777 /tmp
 
-RUN pip3 install gcovr==4.2
+# RUN pip3 install gcovr==4.2
+RUN pip3 install gcovr==4.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # Use ubuntu as default username
 USER ubuntu
@@ -63,7 +64,8 @@ env ASAN_OPTIONS='abort_on_error=1:symbolize=0:detect_leaks=0:detect_stack_use_a
 
 # Download and compile TinyDTLS for fuzzing
 RUN cd $WORKDIR && \
-    git clone https://github.com/assist-project/tinydtls-fuzz.git tinydtls && \
+    # git clone https://github.com/assist-project/tinydtls-fuzz.git tinydtls && \
+    git clone https://gitee.com/skyworld123/tinydtls-fuzz.git tinydtls && \
     cd tinydtls && \
     git checkout 06995d4 && \
     cd tests && \
@@ -73,7 +75,8 @@ RUN cd $WORKDIR && \
 
 # Download and compile TinyDTLS for coverage analysis
 RUN cd $WORKDIR && \
-    git clone https://github.com/assist-project/tinydtls-fuzz.git tinydtls-gcov && \
+    # git clone https://github.com/assist-project/tinydtls-fuzz.git tinydtls-gcov && \
+    git clone https://gitee.com/skyworld123/tinydtls-fuzz.git tinydtls-gcov && \
     cd tinydtls-gcov && \
     git checkout 06995d4 && \
     patch -p1 < $WORKDIR/gcov.patch && \
@@ -83,5 +86,9 @@ RUN cd $WORKDIR && \
     cov=1 make $MAKE_OPT
 
 COPY --chown=ubuntu:ubuntu in-dtls ${WORKDIR}/in-dtls
+COPY --chown=ubuntu:ubuntu in-dtls-replay ${WORKDIR}/in-dtls-replay
 COPY --chown=ubuntu:ubuntu cov_script.sh ${WORKDIR}/cov_script
 COPY --chown=ubuntu:ubuntu run.sh ${WORKDIR}/run
+
+RUN chmod +x ${WORKDIR}/cov_script && \
+    chmod +x ${WORKDIR}/run

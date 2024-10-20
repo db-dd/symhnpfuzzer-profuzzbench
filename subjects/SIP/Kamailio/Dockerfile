@@ -30,7 +30,8 @@ RUN groupadd ubuntu && \
 
 RUN chmod 777 /tmp
 
-RUN pip3 install gcovr==4.2
+# RUN pip3 install gcovr==4.2
+RUN pip3 install gcovr==4.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # Use ubuntu as default username
 USER ubuntu
@@ -70,7 +71,8 @@ env ASAN_OPTIONS='abort_on_error=1:symbolize=0:detect_leaks=0:detect_stack_use_a
 
 # Download and compile Kamalio for fuzzing
 RUN cd $WORKDIR && \
-    git clone https://github.com/kamailio/kamailio.git && \
+    # git clone https://github.com/kamailio/kamailio.git && \
+    git clone https://gitee.com/skyworld123/kamailio.git && \
     cd kamailio && \
     git checkout 2648eb3 && \
     patch -p1 < $WORKDIR/kamailio.patch && \
@@ -79,7 +81,8 @@ RUN cd $WORKDIR && \
 
 # Build SIP client to simulate the callee
 RUN cd $WORKDIR && \
-    git clone https://github.com/pjsip/pjproject.git && \
+    # git clone https://github.com/pjsip/pjproject.git && \
+    git clone https://gitee.com/skyworld123/pjproject.git && \
     cd pjproject && \
     git checkout bba95b8 && \
     patch -p1 < $WORKDIR/pjsip.patch && \
@@ -88,7 +91,8 @@ RUN cd $WORKDIR && \
 
 # Download and compile Kamalio for code coverage analysis
 RUN cd $WORKDIR && \
-    git clone https://github.com/kamailio/kamailio.git kamailio-gcov && \
+    # git clone https://github.com/kamailio/kamailio.git kamailio-gcov && \
+    git clone https://gitee.com/skyworld123/kamailio.git kamailio-gcov && \
     cd kamailio-gcov && \
     git checkout 2648eb3 && \
     patch -p1 < $WORKDIR/kamailio.patch && \
@@ -96,8 +100,13 @@ RUN cd $WORKDIR && \
     make CC_EXTRA_OPTS="-fprofile-arcs -ftest-coverage" LD_EXTRA_OPTS="-fprofile-arcs -ftest-coverage" all $MAKE_OPT
 
 COPY --chown=ubuntu:ubuntu in-sip ${WORKDIR}/in-sip
+COPY --chown=ubuntu:ubuntu in-sip-replay ${WORKDIR}/in-sip-replay
 COPY --chown=ubuntu:ubuntu cov_script.sh ${WORKDIR}/cov_script
 COPY --chown=ubuntu:ubuntu run.sh ${WORKDIR}/run
 COPY --chown=ubuntu:ubuntu run_pjsip.sh ${WORKDIR}/run_pjsip
 COPY --chown=ubuntu:ubuntu kamailio-basic.cfg ${WORKDIR}/kamailio-basic.cfg
 COPY --chown=ubuntu:ubuntu StarWars3.wav ${WORKDIR}/StarWars3.wav
+
+RUN chmod +x ${WORKDIR}/cov_script && \
+    chmod +x ${WORKDIR}/run && \
+    chmod +x ${WORKDIR}/run_pjsip

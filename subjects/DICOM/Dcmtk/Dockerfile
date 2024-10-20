@@ -30,7 +30,8 @@ RUN groupadd ubuntu && \
 
 RUN chmod 777 /tmp
 
-RUN pip3 install gcovr==4.2
+# RUN pip3 install gcovr==4.2
+RUN pip3 install gcovr==4.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # Use ubuntu as default username
 USER ubuntu
@@ -67,7 +68,8 @@ env ASAN_OPTIONS='abort_on_error=1:symbolize=0:detect_leaks=0:detect_stack_use_a
 
 # Download and compile Dcmtk for fuzzing
 RUN cd $WORKDIR && \
-    git clone https://github.com/DCMTK/dcmtk && \
+    # git clone https://github.com/DCMTK/dcmtk && \
+    git clone https://gitee.com/skyworld123/dcmtk && \
     cd dcmtk && \
     git checkout 7f8564c && \
     patch -p1 < $WORKDIR/fuzzing.patch && \
@@ -78,7 +80,8 @@ RUN cd $WORKDIR && \
 
 # Download and compile Dcmtk for coverage analysis
 RUN cd $WORKDIR && \
-    git clone https://github.com/DCMTK/dcmtk dcmtk-gcov && \
+    # git clone https://github.com/DCMTK/dcmtk dcmtk-gcov && \
+    git clone https://gitee.com/skyworld123/dcmtk dcmtk-gcov && \
     cd dcmtk-gcov && \
     git checkout 7f8564c && \
     patch -p1 < $WORKDIR/normal.patch && \
@@ -91,10 +94,15 @@ RUN cd $WORKDIR && \
 
 COPY --chown=ubuntu:ubuntu dcmqrscp.cfg ${WORKDIR}/dcmqrscp.cfg
 COPY --chown=ubuntu:ubuntu in-dicom ${WORKDIR}/in-dicom
+COPY --chown=ubuntu:ubuntu in-dicom-replay ${WORKDIR}/in-dicom-replay
 COPY --chown=ubuntu:ubuntu cov_script.sh ${WORKDIR}/cov_script
 COPY --chown=ubuntu:ubuntu run.sh ${WORKDIR}/run
 COPY --chown=ubuntu:ubuntu clean.sh ${WORKDIR}/clean
 COPY --chown=ubuntu:ubuntu dicom.dic ${WORKDIR}/dcmtk/dcmdata/data/dicom.dic
+
+RUN chmod +x ${WORKDIR}/cov_script && \
+    chmod +x ${WORKDIR}/run && \
+    chmod +x ${WORKDIR}/clean
 
 ENV DCMDICTPATH=${WORKDIR}/dcmtk/dcmdata/data/dicom.dic
 

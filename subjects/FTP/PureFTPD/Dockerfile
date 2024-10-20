@@ -30,7 +30,8 @@ RUN groupadd ubuntu && \
 
 RUN chmod 777 /tmp
 
-RUN pip install gcovr==4.2
+# RUN pip install gcovr==4.2
+RUN pip3 install gcovr==4.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # Use ubuntu as default username
 USER ubuntu
@@ -68,7 +69,8 @@ env ASAN_OPTIONS='abort_on_error=1:symbolize=0:detect_leaks=0:detect_stack_use_a
 
 # Set up PureFTPD for fuzzing
 RUN cd ${WORKDIR} && \
-    git clone https://github.com/jedisct1/pure-ftpd.git && \
+    # git clone https://github.com/jedisct1/pure-ftpd.git && \
+    git clone https://gitee.com/skyworld123/pure-ftpd.git && \
     cd pure-ftpd && \
     git checkout c21b45f && \
     patch -p1 < ${WORKDIR}/fuzzing.patch && \
@@ -78,7 +80,8 @@ RUN cd ${WORKDIR} && \
 
 # Set up PureFTPD for coverage analysis
 RUN cd ${WORKDIR} && \
-    git clone https://github.com/jedisct1/pure-ftpd.git pure-ftpd-gcov && \
+    # git clone https://github.com/jedisct1/pure-ftpd.git pure-ftpd-gcov && \
+    git clone https://gitee.com/skyworld123/pure-ftpd.git pure-ftpd-gcov && \
     cd pure-ftpd-gcov && \
     git checkout c21b45f && \
     patch -p1 < ${WORKDIR}/gcov.patch && \
@@ -87,10 +90,15 @@ RUN cd ${WORKDIR} && \
     make $MAKE_OPT
 
 COPY --chown=ubuntu:ubuntu in-ftp ${WORKDIR}/in-ftp
+COPY --chown=ubuntu:ubuntu in-ftp-replay ${WORKDIR}/in-ftp-replay
 COPY --chown=ubuntu:ubuntu ftp.dict ${WORKDIR}/ftp.dict
 COPY --chown=ubuntu:ubuntu run.sh ${WORKDIR}/run
 COPY --chown=ubuntu:ubuntu clean.sh ${WORKDIR}/clean
 COPY --chown=ubuntu:ubuntu cov_script.sh ${WORKDIR}/cov_script
+
+RUN chmod +x ${WORKDIR}/run && \
+    chmod +x ${WORKDIR}/clean && \
+    chmod +x ${WORKDIR}/cov_script
 
 # Switch default user to root
 USER root
