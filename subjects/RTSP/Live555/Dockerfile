@@ -71,7 +71,7 @@ RUN cd $WORKDIR && \
     git checkout ceeb4f4 && \
     patch -p1 < $WORKDIR/fuzzing.patch && \
     ./genMakefiles linux && \
-    make clean all $MAKE_OPT || make all
+    AFL_USE_ASAN=1 make clean all $MAKE_OPT || make all
 
 # Set up Live555 for fuzzing
 RUN cd ${WORKDIR}/live555/testProgs && \
