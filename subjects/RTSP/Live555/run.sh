@@ -43,7 +43,7 @@ if $(strstr $FUZZER "afl") || $(strstr $FUZZER "HNPFuzzer"); then
 
   #Step-2. Collect code coverage over time
   #Move to gcov folder
-  cd $WORKDIR/live555-cov/testProgs
+  cd $WORKDIR/live555-gcov/testProgs
 
   #The last argument passed to cov_script should be 0 if the fuzzer is afl/nwe and it should be 1 if the fuzzer is based on aflnet
   #0: the test case is a concatenated message sequence -- there is no message boundary
@@ -54,7 +54,7 @@ if $(strstr $FUZZER "afl") || $(strstr $FUZZER "HNPFuzzer"); then
     cov_script ${WORKDIR}/${TARGET_DIR}/testProgs/${OUTDIR}/ 8554 ${SKIPCOUNT} ${WORKDIR}/${TARGET_DIR}/testProgs/${OUTDIR}/cov_over_time.csv 1
   fi
 
-  cd $WORKDIR/live555-cov
+  cd $WORKDIR/live555-gcov
   #copy .hh files since gcovr could not detect them
   for f in BasicUsageEnvironment liveMedia groupsock UsageEnvironment; do
     echo $f
